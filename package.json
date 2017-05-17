@@ -1,0 +1,16 @@
+{
+  "name": "barcamp17-webgl",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "git@github.com:nairinarinyan/barcamp17-webgl.git",
+  "author": "Nairi Narinyan <nairi.narinyan@gmail.com>",
+  "license": "MIT",
+  "scripts": {
+    "compile": "rollup src/main.js --format iife --output build/bundle.js",
+    "watch": "yarn compile -- --watch"
+  },
+  "devDependencies": {
+    "rollup": "^0.41.6",
+    "rollup-watch": "^3.2.2"
+  }
+}

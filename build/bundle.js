@@ -92,15 +92,6 @@ const normalize = vec => {
     return ret;
 };
 
-const vecMatMul = (m, v) => {
-    return new Float32Array([
-        m[0]*v[0] + m[4]*v[1] + m[8]*v[2] + m[12]*v[3],
-        m[1]*v[0] + m[5]*v[1] + m[9]*v[2] + m[13]*v[3],
-        m[2]*v[0] + m[6]*v[1] + m[10]*v[2] + m[14]*v[3],
-        m[3]*v[0] + m[7]*v[1] + m[11]*v[2] + m[15]*v[3]
-    ]);
-};
-
 const identity = () => {
     return new Float32Array([
         1, 0, 0, 0,
@@ -162,35 +153,50 @@ const perspective = (fov, aspect, near, far) => {
     ]);
 };
 
-const rotate = angle => {
+const rotate = (axis, angle) => {
     const c = Math.cos(angle);
     const s = Math.sin(angle);
+    let mat;
 
-    return new Float32Array([
-        c, s, 0, 0,
-        -s, c, 0, 0,
-        0, 0, 1, 0, 
-        0, 0, 0, 1
-    ]);
+    switch(axis) {
+        case 'x':
+            mat = [
+                1, 0, 0, 0,
+                0, c, s, 0,
+                0, -s, c, 0, 
+                0, 0, 0, 1
+            ]; break;
+        case 'y':
+            mat = [
+                c, 0, -s, 0,
+                0, 1, 0, 0,
+                s, 0, c, 0, 
+                0, 0, 0, 1
+            ]; break;
+        case 'z':
+            mat = [
+                c, s, 0, 0,
+                -s, c, 0, 0,
+                0, 0, 1, 0, 
+                0, 0, 0, 1
+            ]; break;
+    }
+
+    return new Float32Array(mat);
 };
 
 let angle = 0;
 
-function updateCamera() {
-    const cameraLocation = new Float32Array([1, 1, -8, 1]);
-    angle += .1;
-    const rotateMat = rotate(angle);
-    return vecMatMul(rotateMat, cameraLocation);
-}
-
 function composeMVPMatrix(gl) {
     const { width, height } = gl.canvas;
 
-    const cameraLocation = updateCamera();
+    const cameraLocation = new Float32Array([1, 1, -9, 1]);
     const cameraTarget = new Float32Array([0, 0, 0]);
     const up = new Float32Array([0, 1, 0]);
 
-    const mMatrix = identity();
+    angle += .01;
+
+    const mMatrix = matMul(rotate('y', angle), identity());
     const vMatrix = lookAt(cameraLocation, cameraTarget, up);
     const pMatrix = perspective(Math.PI / 4, width / height, .5, 50);
 
@@ -206,8 +212,6 @@ function draw(gl, program) {
 
     gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
     gl.enable(gl.BLEND);
-
-    // const mvpMatrix = composeMVPMatrix(gl);
 
     importModel('teapot')
         .then(modelPositionData => {

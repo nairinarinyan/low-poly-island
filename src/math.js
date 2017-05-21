@@ -95,16 +95,48 @@ const perspective = (fov, aspect, near, far) => {
     ]);
 };
 
-const rotate = angle => {
+const rotateY = angle => {
     const c = Math.cos(angle);
     const s = Math.sin(angle);
 
     return new Float32Array([
-        c, s, 0, 0,
-        -s, c, 0, 0,
-        0, 0, 1, 0, 
+        c, 0, -s, 0,
+        0, 1, 0, 0,
+        s, 0, c, 0, 
         0, 0, 0, 1
     ]);
+};
+
+const rotate = (axis, angle) => {
+    const c = Math.cos(angle);
+    const s = Math.sin(angle);
+    let mat;
+
+    switch(axis) {
+        case 'x':
+            mat = [
+                1, 0, 0, 0,
+                0, c, s, 0,
+                0, -s, c, 0, 
+                0, 0, 0, 1
+            ]; break;
+        case 'y':
+            mat = [
+                c, 0, -s, 0,
+                0, 1, 0, 0,
+                s, 0, c, 0, 
+                0, 0, 0, 1
+            ]; break;
+        case 'z':
+            mat = [
+                c, s, 0, 0,
+                -s, c, 0, 0,
+                0, 0, 1, 0, 
+                0, 0, 0, 1
+            ]; break;
+    }
+
+    return new Float32Array(mat);
 };
 
 export {
@@ -118,5 +150,5 @@ export {
     matMul,
     lookAt,
     perspective,
-    rotate
+    rotate,
 };

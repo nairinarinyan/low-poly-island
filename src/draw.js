@@ -3,21 +3,16 @@ import { identity, perspective, lookAt, matMul, vecMatMul, rotate } from './math
 
 let angle = 0;
 
-function updateCamera() {
-    const cameraLocation = new Float32Array([1, 1, -8, 1]);
-    angle += .1;
-    const rotateMat = rotate(angle);
-    return vecMatMul(rotateMat, cameraLocation);
-}
-
 function composeMVPMatrix(gl) {
     const { width, height } = gl.canvas;
 
-    const cameraLocation = updateCamera();
+    const cameraLocation = new Float32Array([1, 1, -9, 1]);
     const cameraTarget = new Float32Array([0, 0, 0]);
     const up = new Float32Array([0, 1, 0])
 
-    const mMatrix = identity();
+    angle += .01;
+
+    const mMatrix = matMul(rotate('y', angle), identity());
     const vMatrix = lookAt(cameraLocation, cameraTarget, up);
     const pMatrix = perspective(Math.PI / 4, width / height, .5, 50);
 
@@ -33,8 +28,6 @@ export default function draw(gl, program) {
 
     gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
     gl.enable(gl.BLEND);
-
-    // const mvpMatrix = composeMVPMatrix(gl);
 
     importModel('teapot')
         .then(modelPositionData => {

@@ -182,13 +182,54 @@ const rotate = (axis, angle) => {
     return new Float32Array(mat);
 };
 
+const transposeMat3 = m => {
+    let a01 = m[1], a02 = m[2];
+    let a12 = m[5];
+                
+    m[1] = m[3];
+    m[2] = m[6];
+    m[3] = a01;
+    m[5] = m[7];
+    m[6] = a02;
+    m[7] = a12;
+
+    return m;
+};
+
+const inverseMat3 = m => {
+    const ret = new Float32Array(9);
+
+    let a00 = m[0], a01 = m[1], a02 = m[2];
+    let a10 = m[4], a11 = m[5], a12 = m[6];
+    let a20 = m[8], a21 = m[9], a22 = m[10];
+    
+    let b01 = a22*a11-a12*a21;
+    let b11 = -a22*a10+a12*a20;
+    let b21 = a21*a10-a11*a20;
+            
+    let d = a00*b01 + a01*b11 + a02*b21;
+    let id = 1/d;
+    
+    ret[0] = b01*id;
+    ret[1] = (-a22*a01 + a02*a21)*id;
+    ret[2] = (a12*a01 - a02*a11)*id;
+    ret[3] = b11*id;
+    ret[4] = (a22*a00 - a02*a20)*id;
+    ret[5] = (-a12*a00 + a02*a10)*id;
+    ret[6] = b21*id;
+    ret[7] = (-a21*a00 + a01*a20)*id;
+    ret[8] = (a11*a00 - a01*a10)*id;
+    
+    return ret;
+};
+
 let angle = 0;
 
 function composeMVPMatrix(gl) {
     const { width, height } = gl.canvas;
 
-    const cameraLocation = new Float32Array([0, 10, -15, 1]);
-    const cameraTarget = new Float32Array([0, 0, 15]);
+    const cameraLocation = new Float32Array([0, 13, -18]);
+    const cameraTarget = new Float32Array([0, 5, 0]);
     const up = new Float32Array([0, 1, 0]);
 
     angle += .01;
@@ -200,15 +241,34 @@ function composeMVPMatrix(gl) {
     const mv = matMul(vMatrix, mMatrix);
     const mvp = matMul(pMatrix, mv);
 
-    return mvp;
+    return { mv, mvp };
 }
+
+function handlePositions(gl, posArray, program) {
+    const positionBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(posArray), gl.STATIC_DRAW);
+    const positionLocation = gl.getAttribLocation(program, 'a_position');
+    gl.vertexAttribPointer(positionLocation, 3, gl.FLOAT, false, 0, 0);
+    gl.enableVertexAttribArray(positionLocation);
+    
+}
+
+function handleNormals(gl, normalArray, program) {
+    const normalBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, normalBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(normalArray), gl.STATIC_DRAW);
+    const normalLocation = gl.getAttribLocation(program, 'a_normal');
+    gl.vertexAttribPointer(normalLocation, 3, gl.FLOAT, false, 0, 0);
+    gl.enableVertexAttribArray(normalLocation);
+}
+
 
 function draw(gl, program) {
     gl.clearColor(0, 0, 0, 0);
     gl.useProgram(program);
 
-    gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
-    gl.enable(gl.BLEND);
+    gl.enable(gl.DEPTH_TEST);
 
     importModel('tree')
         .then(data => {
@@ -217,28 +277,38 @@ function draw(gl, program) {
 
             const indices = [].concat.apply([], faces);
 
-            const vbo = gl.createBuffer();
-            gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
-            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
-
-            const positionLocation = gl.getAttribLocation(program, 'a_position');
-            gl.enableVertexAttribArray(positionLocation);
-            gl.vertexAttribPointer(positionLocation, 3, gl.FLOAT, false, 0, 0);
+            handlePositions(gl, vertices, program);
+            handleNormals(gl, normals, program);
 
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, gl.createBuffer());
             gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW);
 
             const mvpLocation = gl.getUniformLocation(program, 'u_mvp');
+            const normalMatrixLocation = gl.getUniformLocation(program, 'u_normal_mat');
+
+            console.log(mvpLocation, normalMatrixLocation);
+
+            const ambientColorLocation = gl.getUniformLocation(program, 'u_ambient_color');
+            const diffuseColorLocation = gl.getUniformLocation(program, 'u_diffuse_color');
+            const lightPositionLocation = gl.getUniformLocation(program, 'u_light_position');
 
             render();
 
             function render() {
                 gl.clear(gl.COLOR_BUFFER_BIT);
                 requestAnimationFrame(render);
-                gl.uniformMatrix4fv(mvpLocation, false, composeMVPMatrix(gl));
+
+                const { mv, mvp } = composeMVPMatrix(gl);
+                const normalMatrix = transposeMat3(inverseMat3(mv));
+
+                gl.uniformMatrix4fv(mvpLocation, false, mvp);
+                gl.uniformMatrix3fv(normalMatrixLocation, false, normalMatrix);
+
+                gl.uniform3fv(ambientColorLocation, new Float32Array([.1, .8, .9]));
+                gl.uniform3fv(diffuseColorLocation, new Float32Array([.1, .7, .2]));
+                gl.uniform3fv(lightPositionLocation, new Float32Array([3, 3, 0]));
 
                 gl.drawElements(gl.TRIANGLES, indices.length, gl.UNSIGNED_SHORT, 0);
-                gl.drawElements(gl.LINE_LOOP, indices.length, gl.UNSIGNED_SHORT, 0);
             }
         });
 }

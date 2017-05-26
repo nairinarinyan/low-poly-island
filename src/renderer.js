@@ -54,7 +54,7 @@ function setupLights(gl, program, light) {
     gl.uniform1f(diffuseILoc, diffuseIntensity);
 }
 
-export default function renderScene(gl, scene) {
+export default function renderScene(gl, scene, cb) {
     const { models, camera, light } = scene;
 
     const modelList = traverseTree({ children: scene.models }).slice(1);
@@ -68,6 +68,8 @@ export default function renderScene(gl, scene) {
     function draw() {
         requestAnimationFrame(draw);
         gl.clear(gl.COLOR_BUFFER_BIT);
+
+        cb();
 
         modelList.forEach(model => {
             const program = ResourceManager.getProgram(model.material.shader);

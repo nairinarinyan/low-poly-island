@@ -1,4 +1,4 @@
-import initGL from './init';
+import initGL, { watchWindowResize } from './init';
 import ResourceManager from './resource-manager';
 import Scene from './scene';
 import Model from './model';
@@ -9,15 +9,8 @@ import { importFile } from './utils';
 import renderScene from './renderer';
 
 const gl = initGL();
-
-ResourceManager
-    .loadShaders(gl, ['lambertian'])
-    .then(importModels)
-    .then(() => {
-        setupView();
-        setupLights();
-        renderScene(gl, Scene);
-    });
+let camera;
+let angle = 0;
 
 function importModels() {
     const modelNames = ['ico', 'cube'];
@@ -49,8 +42,7 @@ function importModels() {
         const ico = new Model(gl, icoMeshData, 'ico', icoMaterial);
         const cube = new Model(gl, cubeMeshData, 'cube', cubeMaterial);
 
-        // Scene.addModel(cube);
-        Scene.addModel(ico);
+        return [ico, cube];
     });
 }
 
@@ -59,7 +51,7 @@ function setupView() {
     const cameraTarget = [0, 0, 0];
     const { width, height } = gl.canvas;
 
-    const camera = new PerspectiveCamera(cameraLocation, cameraTarget, width / height, .5, 100);
+    camera = new PerspectiveCamera(cameraLocation, cameraTarget, width / height, .5, 100);
     Scene.camera = camera;
 }
 
@@ -73,3 +65,22 @@ function setupLights() {
 
     Scene.light = light;
 }
+
+function render() {
+}
+
+ResourceManager
+    .loadShaders(gl, ['lambertian'])
+    .then(importModels)
+    .then(models => {
+        setupView();
+        watchWindowResize(gl, (width, height) => camera.update(width / height));
+        setupLights();
+
+        const [ico, cube] = models;
+
+        Scene.addModel(ico);
+        Scene.addModel(cube);
+
+        renderScene(gl, Scene, render);
+    });

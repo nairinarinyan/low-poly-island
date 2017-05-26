@@ -103,18 +103,6 @@ const orthographic = (width, height, depth) => {
     ]);
 };
 
-const rotateY = angle => {
-    const c = Math.cos(angle);
-    const s = Math.sin(angle);
-
-    return new Float32Array([
-        c, 0, -s, 0,
-        0, 1, 0, 0,
-        s, 0, c, 0, 
-        0, 0, 0, 1
-    ]);
-};
-
 const rotate = (axis, angle) => {
     const c = Math.cos(angle);
     const s = Math.sin(angle);

@@ -1,20 +1,33 @@
 (function () {
 'use strict';
 
-function initGL() {
+function setViewport(gl, cb) {
     const { innerWidth, innerHeight, devicePixelRatio } = window;
-    const canvas = document.querySelector('#canvas');
-    const gl = canvas.getContext('webgl');
-    window.gl = gl;
+    let { canvas } = gl;
 
     canvas.width = innerWidth * devicePixelRatio;
     canvas.height = innerHeight * devicePixelRatio;
 
-    const setViewport = () => gl.viewport(0, 0, canvas.width, canvas.height);
-    setViewport();
-    window.addEventListener('resize', setViewport);
+    const { width, height } = canvas;
+    
+    gl.viewport(0, 0, width, height);
+    cb && cb(width, height);
+}
+
+function initGL() {
+    const canvas = document.querySelector('#canvas');
+    const gl = canvas.getContext('webgl');
+    window.gl = gl;
+
+    setViewport(gl);
 
     return gl;
+}
+
+function watchWindowResize(gl, cb) {
+    window.addEventListener('resize', () => {
+        setViewport(gl, cb);
+    });
 }
 
 function loadResource(url, type) {
@@ -349,14 +362,22 @@ class Light {
 
 class Camera {
     constructor(location, target) {
-        this.viewMatrix = lookAt(new Float32Array(location), new Float32Array(target));
+        this.location = new Float32Array(location);
+        this.target = new Float32Array(target);
+        this.viewMatrix = lookAt(this.location, this.target);
     }
 }
 
 class PerspectiveCamera extends Camera {
     constructor(location, target, aspectRatio, near, far) {
         super(location, target);
-        this.projectionMatrix = perspective(Math.PI / 4, aspectRatio, near, far);
+        this.near = near;
+        this.far = far;
+        this.projectionMatrix = perspective(Math.PI / 4, aspectRatio, this.near, this.far);
+    }
+
+    update(aspectRatio) {
+        this.projectionMatrix = perspective(Math.PI / 4, aspectRatio, this.near, this.far);
     }
 }
 
@@ -412,7 +433,7 @@ function setupLights$1(gl, program, light) {
     gl.uniform1f(diffuseILoc, diffuseIntensity);
 }
 
-function renderScene(gl, scene) {
+function renderScene(gl, scene, cb) {
     const { models, camera, light } = scene;
 
     const modelList = traverseTree({ children: scene.models }).slice(1);
@@ -426,6 +447,8 @@ function renderScene(gl, scene) {
     function draw() {
         requestAnimationFrame(draw);
         gl.clear(gl.COLOR_BUFFER_BIT);
+
+        cb();
 
         modelList.forEach(model => {
             const program = ResourceManager.getProgram(model.material.shader);
@@ -445,16 +468,7 @@ function renderScene(gl, scene) {
 }
 
 const gl = initGL();
-
-ResourceManager
-    .loadShaders(gl, ['lambertian'])
-    .then(importModels)
-    .then(() => {
-        setupView();
-        setupLights();
-        renderScene(gl, Scene);
-    });
-
+let camera;
 function importModels() {
     const modelNames = ['ico', 'cube'];
 
@@ -485,8 +499,7 @@ function importModels() {
         const ico = new Model(gl, icoMeshData, 'ico', icoMaterial);
         const cube = new Model(gl, cubeMeshData, 'cube', cubeMaterial);
 
-        // Scene.addModel(cube);
-        Scene.addModel(ico);
+        return [ico, cube];
     });
 }
 
@@ -495,7 +508,7 @@ function setupView() {
     const cameraTarget = [0, 0, 0];
     const { width, height } = gl.canvas;
 
-    const camera = new PerspectiveCamera(cameraLocation, cameraTarget, width / height, .5, 100);
+    camera = new PerspectiveCamera(cameraLocation, cameraTarget, width / height, .5, 100);
     Scene.camera = camera;
 }
 
@@ -509,5 +522,24 @@ function setupLights() {
 
     Scene.light = light;
 }
+
+function render() {
+}
+
+ResourceManager
+    .loadShaders(gl, ['lambertian'])
+    .then(importModels)
+    .then(models => {
+        setupView();
+        watchWindowResize(gl, (width, height) => camera.update(width / height));
+        setupLights();
+
+        const [ico, cube] = models;
+
+        Scene.addModel(ico);
+        Scene.addModel(cube);
+
+        renderScene(gl, Scene, render);
+    });
 
 }());

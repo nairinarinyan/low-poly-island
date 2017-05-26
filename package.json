@@ -6,7 +6,7 @@
   "author": "Nairi Narinyan <nairi.narinyan@gmail.com>",
   "license": "MIT",
   "scripts": {
-    "compile": "rollup src/main.js --format iife --output build/bundle.js",
+    "compile": "rollup src/index.js --format iife --output build/bundle.js",
     "watch": "yarn compile -- --watch"
   },
   "devDependencies": {

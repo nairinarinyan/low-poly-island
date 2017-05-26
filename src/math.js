@@ -69,7 +69,7 @@ const matMul = (m1, m2) => {
     return ret;
 }
 
-const lookAt = (eye, target, up) => {
+const lookAt = (eye, target, up = new Float32Array([0,1,0])) => {
     const zAxis = normalize(subtract(eye, target));
     const xAxis = normalize(cross(up, zAxis));
     const yAxis = cross(zAxis, xAxis);
@@ -82,7 +82,6 @@ const lookAt = (eye, target, up) => {
     ]);
 };
 
-//https://webglfundamentals.org/webgl/lessons/webgl-3d-perspective.html
 const perspective = (fov, aspect, near, far) => {
     const f = Math.tan(Math.PI * 0.5 - 0.5 * fov);
     const rangeInv = 1.0 / (near - far);
@@ -92,6 +91,15 @@ const perspective = (fov, aspect, near, far) => {
         0, f, 0, 0,
         0, 0, (near + far) * rangeInv, -1,
         0, 0, near * far * rangeInv * 2, 0
+    ]);
+};
+
+const orthographic = (width, height, depth) => {
+    return new Float32Array([
+        2 / width, 0, 0, 0,
+        0, -2 / height, 0, 0,
+        0, 0, 2 / depth, 0,
+        -1, 1, 0, 1,
     ]);
 };
 
@@ -292,6 +300,7 @@ export {
     matMul,
     lookAt,
     perspective,
+    orthographic,
     rotate,
     inverse,
     inverseMat3,

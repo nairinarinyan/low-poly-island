@@ -4,7 +4,7 @@ import Scene from './scene';
 import Model from './model';
 import Material from './material';
 import Light from './light';
-import { PerspectiveCamera } from './camera';
+import Camera from './camera';
 import { importFile } from './utils';
 import renderScene from './renderer';
 
@@ -61,7 +61,7 @@ function setupView() {
     const cameraTarget = [0, 2, 0];
     const { width, height } = gl.canvas;
 
-    camera = new PerspectiveCamera(cameraLocation, cameraTarget, width / height, .5, 100);
+    camera = new Camera(cameraLocation, cameraTarget, width / height, .5, 100);
     Scene.camera = camera;
 }
 

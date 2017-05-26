@@ -25,15 +25,7 @@ const perspective = (fov, aspect, near, far) => {
     ]);
 };
 
-const orthographic = (width, height, depth) => new Float32Array([
-    2 / width, 0, 0, 0,
-    0, -2 / height, 0, 0,
-    0, 0, 2 / depth, 0,
-    -1, 1, 0, 1,
-]);
-
 export {
     lookAt,
-    perspective,
-    orthographic
+    perspective
 };

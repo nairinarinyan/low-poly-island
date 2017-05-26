@@ -483,16 +483,10 @@ const perspective = (fov, aspect, near, far) => {
 };
 
 class Camera {
-    constructor(location, target) {
+    constructor(location, target, aspectRatio, near, far) {
         this.location = new Float32Array(location);
         this.target = new Float32Array(target);
         this.viewMatrix = lookAt(this.location, this.target);
-    }
-}
-
-class PerspectiveCamera extends Camera {
-    constructor(location, target, aspectRatio, near, far) {
-        super(location, target);
         this.near = near;
         this.far = far;
         this.projectionMatrix = perspective(Math.PI / 4, aspectRatio, this.near, this.far);
@@ -651,7 +645,7 @@ function setupView() {
     const cameraTarget = [0, 2, 0];
     const { width, height } = gl.canvas;
 
-    camera = new PerspectiveCamera(cameraLocation, cameraTarget, width / height, .5, 100);
+    camera = new Camera(cameraLocation, cameraTarget, width / height, .5, 100);
     Scene.camera = camera;
 }
 

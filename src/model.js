@@ -1,5 +1,5 @@
 import ResourceManager from './resource-manager';
-import { identity } from './math';
+import { identity } from './math/matrix';
 import { clampColor } from './utils';
 
 function createAttribute(gl, program, attribArray, attribName, size = 3) {

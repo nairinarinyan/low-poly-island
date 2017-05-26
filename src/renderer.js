@@ -1,10 +1,10 @@
 import ResourceManager from './resource-manager';
-import { matMul, inverseMat3, transposeMat3 } from './math';
+import { matMul, inverse, transpose, toMat3 } from './math/matrix';
 import { traverseTree } from './utils';
 
 function setupMatrices(gl, program, model, camera) {
     const modelViewMat = matMul(camera.viewMatrix, model.transform);
-    const normalMatrix = transposeMat3(inverseMat3(modelViewMat));
+    const normalMatrix = toMat3(transpose(inverse(modelViewMat)));
 
     const mvMatLocation = program.uniforms.u_mv;
     const pMatLocation = program.uniforms.u_p;

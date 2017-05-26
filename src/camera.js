@@ -1,12 +1,5 @@
-import {
-    lookAt,
-    identity,
-    perspective,
-    orthographic,
-    matMul,
-    vecMatMul,
-    rotate
-} from './math';
+import { lookAt, perspective, orthographic } from './math/view';
+import { identity, matMul } from './math/matrix';
 
 class Camera {
     constructor(location, target) {

@@ -1,47 +1,16 @@
-const subtract = (v1, v2) => new Float32Array([
-    v1[0] - v2[0],
-    v1[1] - v2[1],
-    v1[2] - v2[2]
+const identity = () => new Float32Array([
+    1, 0, 0, 0,
+    0, 1, 0, 0,
+    0, 0, 1, 0,
+    0, 0, 0, 1
 ]);
 
-const computeLength = v => Math.sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
-
-const dot = (v1, v2) => v1[0] * v2[0] + v1[1] * v2[1] + v1[2] * v2[2];
-
-const cross = (v1, v2) => new Float32Array([
-    v1[1] * v2[2] - v1[2] * v2[1],
-    v1[2] * v2[0] - v1[0] * v2[2],
-    v1[0] * v2[1] - v1[1] * v2[0]
+const vecMatMul = (m, v) => new Float32Array([
+    m[0]*v[0] + m[4]*v[1] + m[8]*v[2] + m[12]*v[3],
+    m[1]*v[0] + m[5]*v[1] + m[9]*v[2] + m[13]*v[3],
+    m[2]*v[0] + m[6]*v[1] + m[10]*v[2] + m[14]*v[3],
+    m[3]*v[0] + m[7]*v[1] + m[11]*v[2] + m[15]*v[3]
 ]);
-
-const normalize = vec => {
-    const ret = new Float32Array(3);
-    const length = computeLength(vec);
-
-    ret[0] = vec[0]/length;
-    ret[1] = vec[1]/length;
-    ret[2] = vec[2]/length;
-
-    return ret;
-};
-
-const vecMatMul = (m, v) => {
-    return new Float32Array([
-        m[0]*v[0] + m[4]*v[1] + m[8]*v[2] + m[12]*v[3],
-        m[1]*v[0] + m[5]*v[1] + m[9]*v[2] + m[13]*v[3],
-        m[2]*v[0] + m[6]*v[1] + m[10]*v[2] + m[14]*v[3],
-        m[3]*v[0] + m[7]*v[1] + m[11]*v[2] + m[15]*v[3]
-    ]);
-}
-
-const identity = () => {
-    return new Float32Array([
-        1, 0, 0, 0,
-        0, 1, 0, 0,
-        0, 0, 1, 0,
-        0, 0, 0, 1
-    ]);
-}
 
 const matMul = (m1, m2) => {
     const ret = new Float32Array(16);
@@ -67,73 +36,13 @@ const matMul = (m1, m2) => {
     ret[15] = m1[3]*m2[12] + m1[7]*m2[13] + m1[11]*m2[14] + m1[15]*m2[15];
 
     return ret;
-}
-
-const lookAt = (eye, target, up = new Float32Array([0,1,0])) => {
-    const zAxis = normalize(subtract(eye, target));
-    const xAxis = normalize(cross(up, zAxis));
-    const yAxis = cross(zAxis, xAxis);
-
-    return new Float32Array([
-                xAxis[0],         yAxis[0],          zAxis[0], 0,
-                xAxis[1],         yAxis[1],          zAxis[1], 0,
-                xAxis[2],         yAxis[2],          zAxis[2], 0,
-        -dot(xAxis, eye), -dot(yAxis, eye), -dot( zAxis, eye),  1
-    ]);
 };
 
-const perspective = (fov, aspect, near, far) => {
-    const f = Math.tan(Math.PI * 0.5 - 0.5 * fov);
-    const rangeInv = 1.0 / (near - far);
-
-    return new Float32Array([
-        f / aspect, 0, 0, 0,
-        0, f, 0, 0,
-        0, 0, (near + far) * rangeInv, -1,
-        0, 0, near * far * rangeInv * 2, 0
-    ]);
-};
-
-const orthographic = (width, height, depth) => {
-    return new Float32Array([
-        2 / width, 0, 0, 0,
-        0, -2 / height, 0, 0,
-        0, 0, 2 / depth, 0,
-        -1, 1, 0, 1,
-    ]);
-};
-
-const rotate = (axis, angle) => {
-    const c = Math.cos(angle);
-    const s = Math.sin(angle);
-    let mat;
-
-    switch(axis) {
-        case 'x':
-            mat = [
-                1, 0, 0, 0,
-                0, c, s, 0,
-                0, -s, c, 0, 
-                0, 0, 0, 1
-            ]; break;
-        case 'y':
-            mat = [
-                c, 0, -s, 0,
-                0, 1, 0, 0,
-                s, 0, c, 0, 
-                0, 0, 0, 1
-            ]; break;
-        case 'z':
-            mat = [
-                c, s, 0, 0,
-                -s, c, 0, 0,
-                0, 0, 1, 0, 
-                0, 0, 0, 1
-            ]; break;
-    }
-
-    return new Float32Array(mat);
-};
+const toMat3 = m => new Float32Array([
+    m[0], m[1], m[2],
+    m[4], m[5], m[6],
+    m[8], m[9], m[10]
+]);
 
 const inverse = m => {
     const ret = new Float32Array(16);
@@ -236,62 +145,44 @@ const transpose = m => {
     return m;
 };
 
-const transposeMat3 = m => {
-    let a01 = m[1], a02 = m[2];
-    let a12 = m[5];
-                
-    m[1] = m[3];
-    m[2] = m[6];
-    m[3] = a01;
-    m[5] = m[7];
-    m[6] = a02;
-    m[7] = a12;
+const rotate = (axis, angle) => {
+    const c = Math.cos(angle);
+    const s = Math.sin(angle);
+    let mat;
 
-    return m;
-};
+    switch(axis) {
+        case 'x':
+            mat = [
+                1, 0, 0, 0,
+                0, c, s, 0,
+                0, -s, c, 0, 
+                0, 0, 0, 1
+            ]; break;
+        case 'y':
+            mat = [
+                c, 0, -s, 0,
+                0, 1, 0, 0,
+                s, 0, c, 0, 
+                0, 0, 0, 1
+            ]; break;
+        case 'z':
+            mat = [
+                c, s, 0, 0,
+                -s, c, 0, 0,
+                0, 0, 1, 0, 
+                0, 0, 0, 1
+            ]; break;
+    }
 
-const inverseMat3 = m => {
-    const ret = new Float32Array(9);
-
-    let a00 = m[0], a01 = m[1], a02 = m[2];
-    let a10 = m[4], a11 = m[5], a12 = m[6];
-    let a20 = m[8], a21 = m[9], a22 = m[10];
-    
-    let b01 = a22*a11-a12*a21;
-    let b11 = -a22*a10+a12*a20;
-    let b21 = a21*a10-a11*a20;
-            
-    let d = a00*b01 + a01*b11 + a02*b21;
-    let id = 1/d;
-    
-    ret[0] = b01*id;
-    ret[1] = (-a22*a01 + a02*a21)*id;
-    ret[2] = (a12*a01 - a02*a11)*id;
-    ret[3] = b11*id;
-    ret[4] = (a22*a00 - a02*a20)*id;
-    ret[5] = (-a12*a00 + a02*a10)*id;
-    ret[6] = b21*id;
-    ret[7] = (-a21*a00 + a01*a20)*id;
-    ret[8] = (a11*a00 - a01*a10)*id;
-    
-    return ret;
+    return new Float32Array(mat);
 };
 
 export {
-    subtract,
-    computeLength,
-    dot,
-    cross,
-    normalize,
-    vecMatMul,
     identity,
+    vecMatMul,
     matMul,
-    lookAt,
-    perspective,
-    orthographic,
-    rotate,
+    toMat3,
     inverse,
-    inverseMat3,
     transpose,
-    transposeMat3
+    rotate
 };

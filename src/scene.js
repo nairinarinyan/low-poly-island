@@ -1,4 +1,4 @@
-import { matMul } from './math';
+import { matMul } from './math/matrix';
 
 const Scene = {
     camera: null,

@@ -16,7 +16,8 @@ uniform float u_id;
 
 uniform vec3 u_light_position;
 
-varying vec3 color;
+varying vec3 v_color;
+varying vec3 v_normal;
 
 void main()
 {
@@ -29,7 +30,14 @@ void main()
     vec3 ambient = u_ka * u_ia * u_mat_color_a;
     vec3 diffuse = u_kd * max(dot(normal_eye, vertex_to_light), 0.0) * u_id * u_mat_color_d;
 
-    color = ambient + diffuse;
+    vec3 reflection_vec = normalize(reflect(-vertex_to_light, normal_eye));
+    vec3 view_vector_eye = -normalize(vertex_position_eye);
+
+    float rdotv = max(dot(view_vector_eye, reflection_vec), 0.0);
+    float specular = pow(rdotv, 32.0);
+
+    v_color = ambient + diffuse + specular;
+    v_normal = normal_eye;
 
     gl_Position = u_p * u_mv * vec4(a_position, 1.0);
 }

@@ -16,8 +16,11 @@ export default class Camera {
     }
 
     rotate(angle) {
-        const location = vecMatMul(rotate('y', angle), Float32Array.from([...this.location, 0]));
-        this.location = location.subarray(0, 3);
+        this.location = vecMatMul(
+            rotate('y', angle),
+            Float32Array.from([...this.location, 0])
+        ).subarray(0, 3);
+
         this.viewMatrix = lookAt(this.location, this.target);
     }
 }

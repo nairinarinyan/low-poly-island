@@ -42,6 +42,6 @@ export default function initGL() {
 
 export function watchWindowResize(gl, cb) {
     window.addEventListener('resize', () => {
-        setTimeout(() => setViewport(gl, cb), 200);
+        setTimeout(() => setViewport(gl, cb));
     });
 }

@@ -1,6 +1,24 @@
 (function () {
 'use strict';
 
+let isFullscreen;
+
+function initFullScreen() {
+    const fullScreenButton = document.querySelector('#fullscreen');
+
+    fullScreenButton.addEventListener('click', () => {
+        if (!isFullscreen) {
+            document.body.webkitRequestFullScreen && document.body.webkitRequestFullScreen() ||
+            document.body.mozRequestFullScreen && document.body.mozRequestFullScreen();
+        } else {
+           document.webkitExitFullscreen && document.webkitExitFullscreen() ||
+           document.mozCancelFullScreen && document.mozCancelFullScreen();
+        }
+
+        isFullscreen = !isFullscreen;
+    });
+}
+
 function setViewport(gl, cb) {
     const { innerWidth, innerHeight, devicePixelRatio } = window;
     let { canvas } = gl;
@@ -20,13 +38,14 @@ function initGL() {
     window.gl = gl;
 
     setViewport(gl);
+    initFullScreen();
 
     return gl;
 }
 
 function watchWindowResize(gl, cb) {
     window.addEventListener('resize', () => {
-        setViewport(gl, cb);
+        setTimeout(() => setViewport(gl, cb), 200);
     });
 }
 

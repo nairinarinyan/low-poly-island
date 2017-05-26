@@ -1,5 +1,5 @@
 import ResourceManager from './resource-manager';
-import { matMul, inverse, transpose, toMat3 } from './math/matrix';
+import { matMul, vecMatMul, inverse, transpose, toMat3 } from './math/matrix';
 import { traverseTree } from './utils';
 
 function setupMatrices(gl, program, model, camera) {
@@ -42,8 +42,11 @@ function setupMaterialProps(gl, program, material) {
 }
 
 // set light intensities and position
-function setupLights(gl, program, light) {
-    const { ambientIntensity, diffuseIntensity, position } = light;
+function setupLights(gl, program, light, viewMatrix) {
+    let { ambientIntensity, diffuseIntensity, position } = light;
+    
+    // fix light in world space
+    position = vecMatMul(viewMatrix, Float32Array.from([...position, 1])).subarray(0, 3);
 
     const ambientILoc = program.uniforms.u_ia;
     const diffuseILoc = program.uniforms.u_id;
@@ -78,7 +81,7 @@ export default function renderScene(gl, scene, cb) {
             setupMatrices(gl, program, model, camera);
             setupAttributes(gl, model.attributes);
             setupMaterialProps(gl, program, model.material);
-            setupLights(gl, program, light);
+            setupLights(gl, program, light, camera.viewMatrix);
 
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, model.indices.buffer);
             gl.drawElements(gl.TRIANGLES, model.indices.length, gl.UNSIGNED_SHORT, 0);

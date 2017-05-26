@@ -22,7 +22,7 @@ function importModels() {
         const { meshes: [islandMeshData] } = islandFileData;
 
         const lighthouseMaterial = new Material({
-            shader: 'lambertian',
+            shader: 'gourad',
             ambientCoefficient: .4,
             diffuseCoefficient: .8,
             ambientColor: '#70608E',
@@ -31,7 +31,7 @@ function importModels() {
         });
 
         const houseMaterial = new Material({
-            shader: 'lambertian',
+            shader: 'gourad',
             ambientCoefficient: .2,
             diffuseCoefficient: .7,
             ambientColor: '#2D3047',
@@ -40,8 +40,8 @@ function importModels() {
         });
 
         const islandMaterial = new Material({
-            shader: 'lambertian',
-            ambientCoefficient: .7,
+            shader: 'gourad',
+            ambientCoefficient: .9,
             diffuseCoefficient: .9,
             ambientColor: '#419D78',
             diffuseColor: '#A6C971',
@@ -67,8 +67,8 @@ function setupView() {
 
 function setupLights() {
     const light = new Light({
-        position: [10, 0, -5],
-        ambientIntensity: 1,
+        position: [2, 12, 3],
+        ambientIntensity: .6,
         diffuseIntensity: .6,
         specularIntensity: 1
     });
@@ -81,7 +81,7 @@ function render() {
 }
 
 ResourceManager
-    .loadShaders(gl, ['lambertian'])
+    .loadShaders(gl, ['gourad'])
     .then(importModels)
     .then(models => {
         setupView();

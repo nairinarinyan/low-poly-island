@@ -549,8 +549,11 @@ function setupMaterialProps(gl, program, material) {
 }
 
 // set light intensities and position
-function setupLights$1(gl, program, light) {
-    const { ambientIntensity, diffuseIntensity, position } = light;
+function setupLights$1(gl, program, light, viewMatrix) {
+    let { ambientIntensity, diffuseIntensity, position } = light;
+    
+    // fix light in world space
+    position = vecMatMul(viewMatrix, Float32Array.from([...position, 1])).subarray(0, 3);
 
     const ambientILoc = program.uniforms.u_ia;
     const diffuseILoc = program.uniforms.u_id;
@@ -585,7 +588,7 @@ function renderScene(gl, scene, cb) {
             setupMatrices(gl, program, model, camera);
             setupAttributes(gl, model.attributes);
             setupMaterialProps(gl, program, model.material);
-            setupLights$1(gl, program, light);
+            setupLights$1(gl, program, light, camera.viewMatrix);
 
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, model.indices.buffer);
             gl.drawElements(gl.TRIANGLES, model.indices.length, gl.UNSIGNED_SHORT, 0);
@@ -609,7 +612,7 @@ function importModels() {
         const { meshes: [islandMeshData] } = islandFileData;
 
         const lighthouseMaterial = new Material({
-            shader: 'lambertian',
+            shader: 'gourad',
             ambientCoefficient: .4,
             diffuseCoefficient: .8,
             ambientColor: '#70608E',
@@ -618,7 +621,7 @@ function importModels() {
         });
 
         const houseMaterial = new Material({
-            shader: 'lambertian',
+            shader: 'gourad',
             ambientCoefficient: .2,
             diffuseCoefficient: .7,
             ambientColor: '#2D3047',
@@ -627,8 +630,8 @@ function importModels() {
         });
 
         const islandMaterial = new Material({
-            shader: 'lambertian',
-            ambientCoefficient: .7,
+            shader: 'gourad',
+            ambientCoefficient: .9,
             diffuseCoefficient: .9,
             ambientColor: '#419D78',
             diffuseColor: '#A6C971',
@@ -654,8 +657,8 @@ function setupView() {
 
 function setupLights() {
     const light = new Light({
-        position: [10, 0, -5],
-        ambientIntensity: 1,
+        position: [2, 12, 3],
+        ambientIntensity: .6,
         diffuseIntensity: .6,
         specularIntensity: 1
     });
@@ -668,7 +671,7 @@ function render() {
 }
 
 ResourceManager
-    .loadShaders(gl, ['lambertian'])
+    .loadShaders(gl, ['gourad'])
     .then(importModels)
     .then(models => {
         setupView();

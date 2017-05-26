@@ -20,8 +20,6 @@ varying vec3 color;
 
 void main()
 {
-    gl_Position = u_p * u_mv * vec4(a_position, 1.0);
-
     vec4 vertex_position = u_mv * vec4(a_position, 1.0);
     vec3 vertex_position_eye = vertex_position.xyz / vertex_position.w;
 
@@ -32,4 +30,6 @@ void main()
     vec3 diffuse = u_kd * max(dot(normal_eye, vertex_to_light), 0.0) * u_id * u_mat_color_d;
 
     color = ambient + diffuse;
+
+    gl_Position = u_p * u_mv * vec4(a_position, 1.0);
 }

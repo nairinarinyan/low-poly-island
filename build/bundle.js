@@ -166,6 +166,13 @@ const identity = () => new Float32Array([
     0, 0, 0, 1
 ]);
 
+const vecMatMul = (m, v) => new Float32Array([
+    m[0]*v[0] + m[4]*v[1] + m[8]*v[2] + m[12]*v[3],
+    m[1]*v[0] + m[5]*v[1] + m[9]*v[2] + m[13]*v[3],
+    m[2]*v[0] + m[6]*v[1] + m[10]*v[2] + m[14]*v[3],
+    m[3]*v[0] + m[7]*v[1] + m[11]*v[2] + m[15]*v[3]
+]);
+
 const matMul = (m1, m2) => {
     const ret = new Float32Array(16);
 
@@ -297,6 +304,38 @@ const transpose = m => {
     m[14] = t;
 
     return m;
+};
+
+const rotate = (axis, angle) => {
+    const c = Math.cos(angle);
+    const s = Math.sin(angle);
+    let mat;
+
+    switch(axis) {
+        case 'x':
+            mat = [
+                1, 0, 0, 0,
+                0, c, s, 0,
+                0, -s, c, 0, 
+                0, 0, 0, 1
+            ]; break;
+        case 'y':
+            mat = [
+                c, 0, -s, 0,
+                0, 1, 0, 0,
+                s, 0, c, 0, 
+                0, 0, 0, 1
+            ]; break;
+        case 'z':
+            mat = [
+                c, s, 0, 0,
+                -s, c, 0, 0,
+                0, 0, 1, 0, 
+                0, 0, 0, 1
+            ]; break;
+    }
+
+    return new Float32Array(mat);
 };
 
 const Scene = {
@@ -462,6 +501,12 @@ class PerspectiveCamera extends Camera {
     update(aspectRatio) {
         this.projectionMatrix = perspective(Math.PI / 4, aspectRatio, this.near, this.far);
     }
+
+    rotate(angle) {
+        const location = vecMatMul(rotate('y', angle), Float32Array.from([...this.location, 0]));
+        this.location = location.subarray(0, 3);
+        this.viewMatrix = lookAt(this.location, this.target);
+    }
 }
 
 function setupMatrices(gl, program, model, camera) {
@@ -552,43 +597,55 @@ function renderScene(gl, scene, cb) {
 
 const gl = initGL();
 let camera;
+
 function importModels() {
-    const modelNames = ['ico', 'cube'];
+    const modelNames = ['lighthouse', 'house', 'island'];
 
     const importPromises = modelNames.map(modelName => importFile(modelName));
 
-    return Promise.all(importPromises).then(([icoFileData, cubeFileData]) => {
-        const { meshes: [icoMeshData] } = icoFileData;
-        const { meshes: [cubeMeshData] } = cubeFileData;
+    return Promise.all(importPromises).then(([lighthouseFileData, houseFileData, islandFileData]) => {
+        const { meshes: [lighthouseMeshData] } = lighthouseFileData;
+        const { meshes: [houseMeshData] } = houseFileData;
+        const { meshes: [islandMeshData] } = islandFileData;
 
-        const icoMaterial = new Material({
+        const lighthouseMaterial = new Material({
             shader: 'lambertian',
-            ambientCoefficient: .9,
-            diffuseCoefficient: .9,
-            ambientColor: '#232020',
-            diffuseColor: '#553739',
+            ambientCoefficient: .4,
+            diffuseCoefficient: .8,
+            ambientColor: '#70608E',
+            diffuseColor: '#E0859C',
             shininess: 32
         });
 
-        const cubeMaterial = new Material({
+        const houseMaterial = new Material({
             shader: 'lambertian',
             ambientCoefficient: .2,
-            diffuseCoefficient: .4,
-            ambientColor: '#1340a0',
-            diffuseColor: '#583739',
+            diffuseCoefficient: .7,
+            ambientColor: '#2D3047',
+            diffuseColor: '#558C8C',
             shininess: 50
         });
 
-        const ico = new Model(gl, icoMeshData, 'ico', icoMaterial);
-        const cube = new Model(gl, cubeMeshData, 'cube', cubeMaterial);
+        const islandMaterial = new Material({
+            shader: 'lambertian',
+            ambientCoefficient: .7,
+            diffuseCoefficient: .9,
+            ambientColor: '#419D78',
+            diffuseColor: '#A6C971',
+            shininess: 50
+        });
 
-        return [ico, cube];
+        const lighthouse = new Model(gl, lighthouseMeshData, 'lighthouse', lighthouseMaterial);
+        const house = new Model(gl, houseMeshData, 'house', houseMaterial);
+        const island = new Model(gl, islandMeshData, 'island', islandMaterial);
+
+        return [lighthouse, house, island];
     });
 }
 
 function setupView() {
-    const cameraLocation = [0, 10, -12];
-    const cameraTarget = [0, 0, 0];
+    const cameraLocation = [0, 12, -18];
+    const cameraTarget = [0, 2, 0];
     const { width, height } = gl.canvas;
 
     camera = new PerspectiveCamera(cameraLocation, cameraTarget, width / height, .5, 100);
@@ -597,9 +654,9 @@ function setupView() {
 
 function setupLights() {
     const light = new Light({
-        position: [3, 3, 2],
-        ambientIntensity: .1,
-        diffuseIntensity: .8,
+        position: [10, 0, -5],
+        ambientIntensity: 1,
+        diffuseIntensity: .6,
         specularIntensity: 1
     });
 
@@ -607,6 +664,7 @@ function setupLights() {
 }
 
 function render() {
+    camera.rotate(-0.008);
 }
 
 ResourceManager
@@ -617,10 +675,11 @@ ResourceManager
         watchWindowResize(gl, (width, height) => camera.update(width / height));
         setupLights();
 
-        const [ico, cube] = models;
+        const [ico, cube, island] = models;
 
         Scene.addModel(ico);
         Scene.addModel(cube);
+        Scene.addModel(island);
 
         renderScene(gl, Scene, render);
     });

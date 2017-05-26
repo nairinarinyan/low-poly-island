@@ -10,45 +10,55 @@ import renderScene from './renderer';
 
 const gl = initGL();
 let camera;
-let angle = 0;
 
 function importModels() {
-    const modelNames = ['ico', 'cube'];
+    const modelNames = ['lighthouse', 'house', 'island'];
 
     const importPromises = modelNames.map(modelName => importFile(modelName));
 
-    return Promise.all(importPromises).then(([icoFileData, cubeFileData]) => {
-        const { meshes: [icoMeshData] } = icoFileData;
-        const { meshes: [cubeMeshData] } = cubeFileData;
+    return Promise.all(importPromises).then(([lighthouseFileData, houseFileData, islandFileData]) => {
+        const { meshes: [lighthouseMeshData] } = lighthouseFileData;
+        const { meshes: [houseMeshData] } = houseFileData;
+        const { meshes: [islandMeshData] } = islandFileData;
 
-        const icoMaterial = new Material({
+        const lighthouseMaterial = new Material({
             shader: 'lambertian',
-            ambientCoefficient: .9,
-            diffuseCoefficient: .9,
-            ambientColor: '#232020',
-            diffuseColor: '#553739',
+            ambientCoefficient: .4,
+            diffuseCoefficient: .8,
+            ambientColor: '#70608E',
+            diffuseColor: '#E0859C',
             shininess: 32
         });
 
-        const cubeMaterial = new Material({
+        const houseMaterial = new Material({
             shader: 'lambertian',
             ambientCoefficient: .2,
-            diffuseCoefficient: .4,
-            ambientColor: '#1340a0',
-            diffuseColor: '#583739',
+            diffuseCoefficient: .7,
+            ambientColor: '#2D3047',
+            diffuseColor: '#558C8C',
             shininess: 50
         });
 
-        const ico = new Model(gl, icoMeshData, 'ico', icoMaterial);
-        const cube = new Model(gl, cubeMeshData, 'cube', cubeMaterial);
+        const islandMaterial = new Material({
+            shader: 'lambertian',
+            ambientCoefficient: .7,
+            diffuseCoefficient: .9,
+            ambientColor: '#419D78',
+            diffuseColor: '#A6C971',
+            shininess: 50
+        });
 
-        return [ico, cube];
+        const lighthouse = new Model(gl, lighthouseMeshData, 'lighthouse', lighthouseMaterial);
+        const house = new Model(gl, houseMeshData, 'house', houseMaterial);
+        const island = new Model(gl, islandMeshData, 'island', islandMaterial);
+
+        return [lighthouse, house, island];
     });
 }
 
 function setupView() {
-    const cameraLocation = [0, 10, -12];
-    const cameraTarget = [0, 0, 0];
+    const cameraLocation = [0, 12, -18];
+    const cameraTarget = [0, 2, 0];
     const { width, height } = gl.canvas;
 
     camera = new PerspectiveCamera(cameraLocation, cameraTarget, width / height, .5, 100);
@@ -57,9 +67,9 @@ function setupView() {
 
 function setupLights() {
     const light = new Light({
-        position: [3, 3, 2],
-        ambientIntensity: .1,
-        diffuseIntensity: .8,
+        position: [10, 0, -5],
+        ambientIntensity: 1,
+        diffuseIntensity: .6,
         specularIntensity: 1
     });
 
@@ -67,6 +77,7 @@ function setupLights() {
 }
 
 function render() {
+    camera.rotate(-0.008);
 }
 
 ResourceManager
@@ -77,10 +88,11 @@ ResourceManager
         watchWindowResize(gl, (width, height) => camera.update(width / height));
         setupLights();
 
-        const [ico, cube] = models;
+        const [ico, cube, island] = models;
 
         Scene.addModel(ico);
         Scene.addModel(cube);
+        Scene.addModel(island);
 
         renderScene(gl, Scene, render);
     });

@@ -1,5 +1,5 @@
 import ResourceManager from './resource-manager';
-import { identity } from './math/matrix';
+import { identity, rotate, translate, matMul } from './math/matrix';
 import { clampColor } from './utils';
 
 function createAttribute(gl, program, attribArray, attribName, size = 3) {
@@ -44,5 +44,25 @@ export default class Model {
             a_position: createAttribute(gl, program, vertices, 'a_position'),
             a_normal: createAttribute(gl, program, normals, 'a_normal')
         };
+    }
+
+    rotate(origin, axis, angle) {
+        const [x, y, z] = origin;
+
+        const translateMat = translate(-x, -y, -z);
+        const translateBackMat = translate(x, y, z);
+        const rotateMat = rotate(axis, angle);
+
+        this.transform = matMul(translateBackMat, (matMul(rotateMat, matMul(translateMat, this.transform))));
+    }
+
+    translate(x, y, z) {
+        this.transform[12] = x;
+        this.transform[13] = y;
+        this.transform[14] = z;
+    }
+
+    move(x, y, z) {
+        this.transform = matMul(translate(x, y, z), this.transform);
     }
 }

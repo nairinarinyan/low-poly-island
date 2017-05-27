@@ -338,6 +338,13 @@ const rotate = (axis, angle) => {
     return new Float32Array(mat);
 };
 
+const translate = (x, y, z) => new Float32Array([
+    1, 0, 0, 0,
+    0, 1, 0, 0,
+    0, 0, 1, 0,
+    x, y, z, 1
+]);
+
 const Scene = {
     camera: null,
     light: null,
@@ -398,6 +405,26 @@ class Model {
             a_position: createAttribute(gl, program, vertices, 'a_position'),
             a_normal: createAttribute(gl, program, normals, 'a_normal')
         };
+    }
+
+    rotate(origin, axis, angle) {
+        const [x, y, z] = origin;
+
+        const translateMat = translate(-x, -y, -z);
+        const translateBackMat = translate(x, y, z);
+        const rotateMat = rotate(axis, angle);
+
+        this.transform = matMul(translateBackMat, (matMul(rotateMat, matMul(translateMat, this.transform))));
+    }
+
+    translate(x, y, z) {
+        this.transform[12] = x;
+        this.transform[13] = y;
+        this.transform[14] = z;
+    }
+
+    move(x, y, z) {
+        this.transform = matMul(translate(x, y, z), this.transform);
     }
 }
 
@@ -604,17 +631,28 @@ function renderScene(gl, scene, cb) {
 
 const gl = initGL();
 let camera;
+let turbine;
 
 function importModels() {
-    const modelNames = ['lighthouse', 'house', 'island', 'roof'];
+    const modelNames = ['lighthouse', 'house', 'island', 'roof', 'stand', 'turbine'];
 
     const importPromises = modelNames.map(modelName => importFile(modelName));
 
-    return Promise.all(importPromises).then(([lighthouseFileData, houseFileData, islandFileData, roofFileData]) => {
+    return Promise.all(importPromises).then(([
+            lighthouseFileData,
+            houseFileData,
+            islandFileData,
+            roofFileData,
+            standFileData,
+            turbineFileData
+        ]) => {
+
         const { meshes: [lighthouseMeshData] } = lighthouseFileData;
         const { meshes: [houseMeshData] } = houseFileData;
         const { meshes: [islandMeshData] } = islandFileData;
         const { meshes: [roofMeshData] } = roofFileData;
+        const { meshes: [standMeshData] } = standFileData;
+        const { meshes: [turbineMeshData] } = turbineFileData;
 
         const lighthouseMaterial = new Material({
             shader: 'gourad',
@@ -660,8 +698,11 @@ function importModels() {
         const house = new Model(gl, houseMeshData, 'house', houseMaterial);
         const island = new Model(gl, islandMeshData, 'island', islandMaterial);
         const roof = new Model(gl, roofMeshData, 'roof', roofMaterial);
+        const stand = new Model(gl, standMeshData, 'stand', lighthouseMaterial);
 
-        return [lighthouse, house, island, roof];
+        turbine = new Model(gl, turbineMeshData, 'turbine', roofMaterial);
+
+        return [lighthouse, house, island, roof, stand, turbine];
     });
 }
 
@@ -686,7 +727,8 @@ function setupLights() {
 }
 
 function render() {
-    camera.rotate(-0.008);
+    camera.rotate(-0.004);
+    turbine.rotate([-0.421, 8.091, 1.760], 'z', -.02);
 }
 
 ResourceManager
@@ -697,12 +739,14 @@ ResourceManager
         watchWindowResize(gl, (width, height) => camera.update(width / height));
         setupLights();
 
-        const [lighthouse, house, island, roof] = models;
+        const [lighthouse, house, island, roof, stand, turbine] = models;
 
         Scene.addModel(lighthouse);
         Scene.addModel(house);
         Scene.addModel(island);
         Scene.addModel(roof);
+        Scene.addModel(stand);
+        Scene.addModel(turbine);
 
         renderScene(gl, Scene, render);
     });

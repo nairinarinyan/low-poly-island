@@ -177,6 +177,13 @@ const rotate = (axis, angle) => {
     return new Float32Array(mat);
 };
 
+const translate = (x, y, z) => new Float32Array([
+    1, 0, 0, 0,
+    0, 1, 0, 0,
+    0, 0, 1, 0,
+    x, y, z, 1
+]);
+
 export {
     identity,
     vecMatMul,
@@ -184,5 +191,6 @@ export {
     toMat3,
     inverse,
     transpose,
-    rotate
+    rotate,
+    translate
 };

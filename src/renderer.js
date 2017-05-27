@@ -28,17 +28,21 @@ function setupAttributes(gl, attribs) {
 
 // set material colors and coefficients
 function setupMaterialProps(gl, program, material) {
-    const { ambientColor, diffuseColor, ambientCoefficient, diffuseCoefficient } = material;
+    const { ambientColor, diffuseColor, ambientCoefficient, diffuseCoefficient, specularCoefficient, shininess } = material;
 
     const ambientColorLoc = program.uniforms.u_mat_color_a;
     const diffuseColorLoc = program.uniforms.u_mat_color_d;
     const ambientKLoc = program.uniforms.u_ka;
     const diffuseKLoc = program.uniforms.u_kd;
+    const specularKLoc = program.uniforms.u_ks;
+    const shininessLoc = program.uniforms.u_shininess;
 
     gl.uniform3fv(ambientColorLoc, ambientColor);
     gl.uniform3fv(diffuseColorLoc, diffuseColor);
     gl.uniform1f(ambientKLoc, ambientCoefficient);
     gl.uniform1f(diffuseKLoc, diffuseCoefficient);
+    gl.uniform1f(specularKLoc, specularCoefficient);
+    gl.uniform1f(shininessLoc, shininess);
 }
 
 // set light intensities and position
@@ -76,6 +80,7 @@ export default function renderScene(gl, scene, cb) {
 
         modelList.forEach(model => {
             const program = ResourceManager.getProgram(model.material.shader);
+
             gl.useProgram(program.program);
 
             setupMatrices(gl, program, model, camera);

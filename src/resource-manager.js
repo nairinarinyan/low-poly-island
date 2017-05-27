@@ -67,7 +67,7 @@ const ResourceManager = {
     },
 
     getProgram(programName) {
-        return this.programs.find(p => p.name = programName);
+        return this.programs.find(p => p.name === programName);
     }
 };
 

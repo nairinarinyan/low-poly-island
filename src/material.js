@@ -4,7 +4,7 @@ export default class Material {
     constructor(options) {
         const {
             shader,
-            ambientCoefficient, diffuseCoefficient,
+            ambientCoefficient, diffuseCoefficient, specularCoefficient,
             ambientColor, diffuseColor,
             shininess
         } = options;
@@ -14,6 +14,8 @@ export default class Material {
         this.diffuseColor = new Float32Array(clampColor(diffuseColor));
         this.ambientCoefficient = ambientCoefficient;
         this.diffuseCoefficient = diffuseCoefficient;
+        this.specularCoefficient = specularCoefficient;
+
         this.shininess = shininess;
     }
 }

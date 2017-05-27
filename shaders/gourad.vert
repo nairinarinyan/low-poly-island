@@ -10,9 +10,11 @@ uniform vec3 u_mat_color_d;
 
 uniform float u_ka;
 uniform float u_kd;
+uniform float u_ks;
 
 uniform float u_ia;
 uniform float u_id;
+uniform float u_shininess;
 
 uniform vec3 u_light_position;
 
@@ -34,7 +36,7 @@ void main()
     vec3 view_vector_eye = -normalize(vertex_position_eye);
 
     float rdotv = max(dot(view_vector_eye, reflection_vec), 0.0);
-    float specular = pow(rdotv, 32.0);
+    float specular = u_ks * pow(rdotv, u_shininess);
 
     v_color = ambient + diffuse + specular;
     v_normal = normal_eye;

@@ -708,7 +708,7 @@ function importModels() {
 
 function setupView() {
     const cameraLocation = [0, 13, -18];
-    const cameraTarget = [0, 2, 0];
+    const cameraTarget = [0, 3.5, 0];
     const { width, height } = gl.canvas;
 
     camera = new Camera(cameraLocation, cameraTarget, width / height, .5, 100);

@@ -35,3 +35,5 @@ gl.enableVertexAttribArray(positionLocation);
 gl.enableVertexAttribArray(colorLocation);
 
 gl.drawArrays(gl.TRIANGLES, 0, 3);
+// gl.drawArrays(gl.LINE_LOOP, 0, 3);
+// gl.drawArrays(gl.POINTS, 0, 3);

@@ -1,4 +1,4 @@
-import { subtract, normalize, dot, cross } from './vector';
+import { subtract, normalize, dot, cross } from './vector.js';
 
 const lookAt = (eye, target, up = new Float32Array([0,1,0])) => {
     const zAxis = normalize(subtract(eye, target));

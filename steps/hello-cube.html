@@ -18,30 +18,23 @@
 
     <script id="shader-vs" type="x-shader/x-vertex">
         attribute vec3 a_position;
-        attribute vec3 a_color;
 
-        uniform mat3 u_transform;
-
-        varying vec3 v_color;
+        uniform mat4 u_mv_mat;
+        uniform mat4 u_p_mat;
 
         void main() {
-            v_color = a_color; 
-
-            vec3 position = u_transform * a_position;
-
-            gl_Position = vec4(position, 1);
+            gl_Position = u_p_mat * u_mv_mat * vec4(a_position, 1);
         }
     </script>
 
     <script id="shader-fs" type="x-shader/x-fragment">
         precision mediump float;
-        varying vec3 v_color;
 
         void main() {
-            gl_FragColor = vec4(v_color, 1);
+            gl_FragColor = vec4(.0, .0, .0, .3);
         }
     </script>
 
-    <script type="module" src="transform-triangle.js"></script> 
+    <script type="module" src="hello-cube.js"></script> 
 </body>
 </html>

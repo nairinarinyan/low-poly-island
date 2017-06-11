@@ -28,9 +28,9 @@ void main()
     float diff = max(dot(norm, light_dir), 0.0);
     vec3 diffuse = u_kd * diff * u_id * u_mat_color_d;
 
+    // specular
     vec3 reflection_dir = normalize(reflect(-light_dir, norm));
     vec3 view_dir = -normalize(v_position);
-
     float rdotv = max(dot(view_dir, reflection_dir), 0.0);
     float specular = u_ks * pow(rdotv, u_shininess);
 

@@ -7,7 +7,7 @@
   "license": "MIT",
   "scripts": {
     "compile": "rollup src/index.js --format iife --output build/bundle.js",
-    "watch": "yarn compile -- --watch"
+    "watch": "npm run compile -- --watch"
   },
   "devDependencies": {
     "rollup": "^0.41.6",

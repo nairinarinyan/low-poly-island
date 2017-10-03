@@ -72,11 +72,11 @@ export default function renderScene(gl, scene, cb) {
     gl.enable(gl.DEPTH_TEST);
     gl.enable(gl.CULL_FACE);
 
-    function draw() {
+    function draw(timeStamp) {
         requestAnimationFrame(draw);
         gl.clear(gl.COLOR_BUFFER_BIT);
 
-        cb();
+        cb(timeStamp);
 
         modelList.forEach(model => {
             const program = ResourceManager.getProgram(model.material.shader);
@@ -93,6 +93,6 @@ export default function renderScene(gl, scene, cb) {
         });
     }
 
-    draw();
+    draw(performance.now());
 }
 

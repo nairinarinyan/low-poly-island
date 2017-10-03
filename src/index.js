@@ -9,7 +9,7 @@ import { importFile } from './utils';
 import renderScene from './renderer';
 
 const gl = initGL();
-let camera, turbine;
+let camera, turbine, lastTimeStamp = performance.now();
 
 function importModels() {
     const modelNames = ['lighthouse', 'house', 'island', 'roof', 'stand', 'turbine'];
@@ -104,9 +104,12 @@ function setupLights() {
     Scene.light = light;
 }
 
-function render() {
-    camera.rotate(-0.004);
-    turbine.rotate([-0.421, 8.091, 1.760], 'z', -.02);
+function render(timeStamp) {
+    let delta = (timeStamp - lastTimeStamp) / 1000;
+    lastTimeStamp = timeStamp;
+
+    camera.rotate(-0.2 * delta);
+    turbine.rotate([-0.421, 8.091, 1.760], 'z', -2 * delta);
 }
 
 ResourceManager

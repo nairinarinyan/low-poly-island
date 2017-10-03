@@ -605,11 +605,11 @@ function renderScene(gl, scene, cb) {
     gl.enable(gl.DEPTH_TEST);
     gl.enable(gl.CULL_FACE);
 
-    function draw() {
+    function draw(timeStamp) {
         requestAnimationFrame(draw);
         gl.clear(gl.COLOR_BUFFER_BIT);
 
-        cb();
+        cb(timeStamp);
 
         modelList.forEach(model => {
             const program = ResourceManager.getProgram(model.material.shader);
@@ -626,12 +626,13 @@ function renderScene(gl, scene, cb) {
         });
     }
 
-    draw();
+    draw(performance.now());
 }
 
 const gl = initGL();
 let camera;
 let turbine;
+let lastTimeStamp = performance.now();
 
 function importModels() {
     const modelNames = ['lighthouse', 'house', 'island', 'roof', 'stand', 'turbine'];
@@ -726,9 +727,12 @@ function setupLights() {
     Scene.light = light;
 }
 
-function render() {
-    camera.rotate(-0.004);
-    turbine.rotate([-0.421, 8.091, 1.760], 'z', -.02);
+function render(timeStamp) {
+    let delta = (timeStamp - lastTimeStamp) / 1000;
+    lastTimeStamp = timeStamp;
+
+    camera.rotate(-0.2 * delta);
+    turbine.rotate([-0.421, 8.091, 1.760], 'z', -2 * delta);
 }
 
 ResourceManager
